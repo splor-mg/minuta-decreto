@@ -1,0 +1,23 @@
+# Artefatos gerados pela ferramenta (nao versionar)
+conferencia.xlsx
+minuta *.docx
+~$*
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Ambiente / editores
+.env
+.vscode/
+.idea/
+*.log
+
+# SO
+Thumbs.db
+Desktop.ini
+.DS_Store

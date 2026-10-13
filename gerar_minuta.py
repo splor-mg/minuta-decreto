@@ -490,8 +490,11 @@ def verificar_balanco(caminho_txt: str, caminho_xlsx: str) -> bool:
     val_incis = sum(v for _, v in incisos)
     val_art2  = val_anul + val_incis
 
-    # Tolerancia de 1 centavo para evitar falsos positivos de arredondamento
-    if abs(val_supl - val_art2) < 0.01:
+    # Sem tolerancia: os valores devem bater exatamente ate o centavo.
+    # A comparacao e feita em centavos inteiros apenas para descartar ruido
+    # de representacao de ponto flutuante (ex.: 1,15 * 100 = 114,9999...),
+    # e NAO para admitir qualquer diferenca real de centavos.
+    if round(val_supl * 100) == round(val_art2 * 100):
         return True
 
     diff = val_art2 - val_supl

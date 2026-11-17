@@ -542,6 +542,39 @@ def verificar_balanco(caminho_txt: str, caminho_xlsx: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# 3.3) Anulacao da Reserva de Contingencia
+#
+# Recomendacao do TCE: decretos que anulam dotacao da Reserva de Contingencia
+# devem trazer, no Art. 2º, um inciso exclusivo para essa anulacao, separado
+# da anulacao das demais dotacoes.
+#
+# A reserva so pode ser identificada no TXT, pelo titulo do orgao dentro da
+# secao de anulacao:
+#     RESERVA DE CONTINGENCIA
+#     1991.99999999-9.999-0001-9999-0-10.1            5.302.002,09
+# ---------------------------------------------------------------------------
+RE_VALOR_DOTACAO = re.compile(r"(\d[\d\.]*,\d{2})\s*$")
+
+
+def anulacao_reserva(dados: dict) -> tuple[float, int]:
+    """
+    Soma as dotacoes anuladas sob o titulo 'RESERVA DE CONTINGENCIA'.
+    Retorna (valor_total, quantidade_de_dotacoes); (0.0, 0) se nao houver.
+    """
+    total = 0.0
+    qtd = 0
+    for org, dotacoes in dados["anulacao"]:
+        if "RESERVA DE CONTING" not in org.upper():
+            continue
+        for d in dotacoes:
+            m = RE_VALOR_DOTACAO.search(d)
+            if m:
+                total += _parse_brl(m.group(1))
+                qtd += 1
+    return round(total, 2), qtd
+
+
+# ---------------------------------------------------------------------------
 # 4) Parser do conferencia.xlsx
 # ---------------------------------------------------------------------------
 def parse_conferencia(caminho_xlsx: str):
@@ -573,6 +606,20 @@ def substituir_em_runs(paragrafo, mapa: dict):
         paragrafo.runs[0].text = novo_texto
         for r in paragrafo.runs[1:]:
             r.text = ""
+
+
+def definir_texto(paragrafo, texto: str):
+    """Troca todo o texto do paragrafo, mantendo a formatacao do 1o run."""
+    if paragrafo.runs:
+        paragrafo.runs[0].text = texto
+        for r in paragrafo.runs[1:]:
+            r.text = ""
+    else:
+        paragrafo.add_run(texto)
+
+
+# Numeral romano no inicio de um inciso: "II - ", "III – " etc.
+RE_NUMERAL_INCISO = re.compile(r"^\s*[IVXLCDM]+\s*[-–—]\s*")
 
 
 def clonar_paragrafo_apos(referencia, texto: str, alinhamento=None):
@@ -631,63 +678,63 @@ def gerar_minuta(template_path: str, txt_path: str, xlsx_path: str, saida_path: 
     p6 = paragrafos[6]   # "I – da anulação... R$xxx (xxx por extenso);"
     p7 = paragrafos[7]   # "Xxx" (placeholder de incisos extras)
 
-    if incisos_extra:
-        # Caso com incisos: comportamento original — preenche inciso I e adiciona os demais
-        texto_p6 = "".join(r.text for r in p6.runs)
-        texto_p6 = texto_p6.replace("xxx por extenso", extenso_anul, 1)
-        texto_p6 = texto_p6.replace("xxx", total_anul_str, 1)
-        if p6.runs:
-            p6.runs[0].text = texto_p6
-            for r in p6.runs[1:]:
-                r.text = ""
-    else:
-        # Caso sem incisos: reescreve p5 como paragrafo unico do Art. 2º e apaga p6 e p7
-        texto_art2 = (
-            f"Art. 2\u00ba \u2013 Para atender ao disposto no art.1\u00ba ser\u00e1 utilizado "
-            f"recurso proveniente da anula\u00e7\u00e3o das dota\u00e7\u00f5es or\u00e7ament\u00e1rias "
-            f"indicadas no Anexo, no valor de R${total_anul_str} "
-            f"({extenso_anul})."
-        )
-        if p5.runs:
-            p5.runs[0].text = texto_art2
-            for r in p5.runs[1:]:
-                r.text = ""
+    # ---- Art. 2º: lista das fontes de recurso, na ordem dos incisos ----
+    # (texto de cada inciso sem o numeral romano e sem a pontuacao final)
+    fontes_art2 = []
+
+    valor_reserva, qtd_reserva = anulacao_reserva(dados)
+    if valor_reserva > 0:
+        # Recomendacao do TCE: inciso exclusivo para a Reserva de Contingencia,
+        # seguido do inciso com a anulacao das demais dotacoes (se houver)
+        if qtd_reserva > 1:
+            desc_reserva = ("das dotações orçamentárias da Reserva de Contingência "
+                            "indicadas no Anexo")
         else:
-            p5.add_run(texto_art2)
-        # Remove fisicamente os paragrafos do inciso I e do placeholder Xxx
+            desc_reserva = ("de dotação orçamentária da Reserva de Contingência "
+                            "indicada no Anexo")
+        fontes_art2.append(
+            f"da anulação {desc_reserva}, no valor de "
+            f"R${fmt_brl(valor_reserva)} ({valor_extenso(valor_reserva)})"
+        )
+        valor_demais = round(total_anul_val - valor_reserva, 2)
+        if valor_demais > 0:
+            fontes_art2.append(
+                "da anulação das demais dotações orçamentárias indicadas no Anexo, "
+                f"no valor de R${fmt_brl(valor_demais)} ({valor_extenso(valor_demais)})"
+            )
+    else:
+        fontes_art2.append(
+            "da anulação das dotações orçamentárias indicadas no Anexo, "
+            f"no valor de R${total_anul_str} ({extenso_anul})"
+        )
+
+    # Incisos de saldo/excesso do conferencia.xlsx: descarta o numeral que vem
+    # no texto ("II - ...") porque eles sao renumerados apos os de anulacao.
+    for texto, _val in incisos_extra:
+        fontes_art2.append(RE_NUMERAL_INCISO.sub("", texto, count=1).rstrip(" ;."))
+
+    if len(fontes_art2) == 1:
+        # Fonte unica: reescreve p5 como paragrafo unico do Art. 2º e apaga p6 e p7
+        definir_texto(p5, (
+            "Art. 2º – Para atender ao disposto no art.1º será utilizado "
+            f"recurso proveniente {fontes_art2[0]}."
+        ))
         for p_remover in (p6, p7):
             p_remover._element.getparent().remove(p_remover._element)
-
-    if incisos_extra:
-        textos_norm = []
-        n = len(incisos_extra)
-        for idx, (texto, _val) in enumerate(incisos_extra):
-            t = texto.replace("- ", "– ", 1)
-            ultimo = idx == n - 1
-            if ultimo:
-                if t.endswith(";"):
-                    t = t[:-1] + "."
-                elif not t.endswith("."):
-                    t += "."
-            else:
-                if not t.endswith(";"):
-                    if t.endswith("."):
-                        t = t[:-1] + ";"
-                    else:
-                        t += ";"
-            textos_norm.append(t)
-
-        primeiro_texto_norm = textos_norm[0]
-        if p7.runs:
-            p7.runs[0].text = primeiro_texto_norm
-            for r in p7.runs[1:]:
-                r.text = ""
-        else:
-            p7.add_run(primeiro_texto_norm)
-
+    else:
+        # Varias fontes: um inciso por fonte (I, II, III...), ';' entre eles e
+        # '.' no ultimo. O inciso I ocupa p6, o II ocupa p7 e os seguintes sao
+        # clonados em sequencia a partir de p7.
+        n = len(fontes_art2)
+        textos_incisos = [
+            f"{romano(i + 1)} – {t}{'.' if i == n - 1 else ';'}"
+            for i, t in enumerate(fontes_art2)
+        ]
+        definir_texto(p6, textos_incisos[0])
+        definir_texto(p7, textos_incisos[1])
         ref = p7
-        for texto_norm in textos_norm[1:]:
-            ref = clonar_paragrafo_apos(ref, texto_norm)
+        for texto_inciso in textos_incisos[2:]:
+            ref = clonar_paragrafo_apos(ref, texto_inciso)
 
     for p in doc.paragraphs:
         if "Sob o" in p.text and "xxx" in p.text:
@@ -822,6 +869,11 @@ def rodar_minuta(pasta_minuta: str) -> bool:
 
     if not verificar_balanco(txt_path, xlsx_path):
         return False
+
+    valor_reserva, _ = anulacao_reserva(parse_txt(txt_path))
+    if valor_reserva > 0:
+        print(f"\n  ℹ️  Anulação da Reserva de Contingência: R$ {fmt_brl(valor_reserva)}")
+        print("      O Art. 2º terá inciso exclusivo para ela (recomendação do TCE).\n")
 
     try:
         gerar_minuta(TEMPLATE_PATH, txt_path, xlsx_path, saida_path)

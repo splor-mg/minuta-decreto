@@ -121,5 +121,14 @@ python gerar_minuta.py "05 maio\minuta 83"
   `~$...`) estão no `.gitignore` e não devem ser versionados.
 - Se não houver incisos de saldo/excesso, o `conferencia.xlsx` é criado apenas
   com o cabeçalho e a minuta é montada no formato de Art. 2º sem incisos.
+- **Reserva de Contingência (recomendação do TCE):** quando o TXT traz, na
+  anulação, dotação sob o título `RESERVA DE CONTINGENCIA`, o Art. 2º ganha um
+  inciso exclusivo para ela, antes da anulação das demais dotações:
+  - `I – da anulação de dotação orçamentária da Reserva de Contingência indicada no Anexo, no valor de R$...;`
+  - `II – da anulação das demais dotações orçamentárias indicadas no Anexo, no valor de R$...;`
+  - os incisos de saldo/excesso do `conferencia.xlsx` vêm em seguida,
+    renumerados (III, IV...).
+
+  Se toda a anulação for da reserva, o inciso das demais dotações é omitido.
 - O número da minuta é extraído do nome do `Minuta*.TXT` (ex.: `Minuta0083.TXT`
   → `minuta 83.docx`).

@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Manual — Gerador de Minutas de Decreto</title>
+<style>
+:root {
+  --ink: #1c2633;
+  --muted: #5d6877;
+  --line: #d8dee6;
+  --soft: #f3f6f9;
+  --brand: #0d4a6b;
+  --brand-2: #16698f;
+  --brand-soft: #e6f0f6;
+  --ok: #1d7a4c;
+  --ok-soft: #e7f4ec;
+  --warn: #a15c00;
+  --warn-line: #d99100;
+  --warn-soft: #fff5de;
+  --bad: #b3261e;
+  --bad-soft: #fcebea;
+  --mono: "Cascadia Mono", "Consolas", "Courier New", monospace;
+  --sans: "Segoe UI", "Segoe UI Variable Text", Arial, sans-serif;
+}
+
+@page {
+  size: A4;
+  margin: 18mm 17mm 20mm 17mm;
+  @bottom-left {
+    content: "Gerador de Minutas de Decreto · Manual de uso";
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 7.5pt;
+    color: #7a8592;
+  }
+  @bottom-right {
+    content: "Página " counter(page) " de " counter(pages);
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 7.5pt;
+    color: #7a8592;
+  }
+}
+@page capa {
+  margin: 0;
+  @bottom-left { content: none; }
+  @bottom-right { content: none; }
+}
+
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html { font-family: var(--sans); font-size: 10.3pt; line-height: 1.55; color: var(--ink); background: #fff; }
+body { margin: 0; }
+p { margin: 0 0 8px; }
+ul, ol { margin: 4px 0 10px; padding-left: 20px; }
+li { margin: 2px 0; }
+strong { font-weight: 650; }
+a { color: var(--brand-2); text-decoration: none; }
+code, .k {
+  font-family: var(--mono); font-size: 8.8pt;
+  background: #edf1f5; border: 1px solid #dfe5ec; border-radius: 3px; padding: 0 4px;
+  white-space: nowrap;
+}
+kbd {
+  font-family: var(--sans); font-size: 8pt; font-weight: 600;
+  border: 1px solid #b9c2cc; border-bottom-width: 2px; border-radius: 4px;
+  padding: 0 5px; background: #fff; white-space: nowrap;
+}
+
+/* ---------- capa ---------- */
+.capa { page: capa; height: 296mm; position: relative; overflow: hidden; break-after: page; }
+.capa .topo {
+  background: linear-gradient(160deg, #0b3f5c 0%, #0d4a6b 55%, #136a92 100%);
+  color: #fff; height: 168mm; padding: 34mm 24mm 0 24mm; position: relative;
+}
+.capa .kicker { font-size: 9pt; letter-spacing: .22em; text-transform: uppercase; opacity: .8; font-weight: 600; }
+.capa h1 { font-size: 34pt; line-height: 1.08; margin: 10px 0 14px; font-weight: 700; letter-spacing: -.01em; }
+.capa .sub { font-size: 12.5pt; line-height: 1.5; max-width: 128mm; opacity: .93; }
+.capa .arq {
+  display: inline-block; margin-top: 18px; font-family: var(--mono); font-size: 10pt;
+  background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.28);
+  padding: 4px 10px; border-radius: 4px;
+}
+.capa svg.deco { position: absolute; right: 18mm; bottom: -16mm; width: 62mm; }
+.capa .baixo { padding: 26mm 24mm 0 24mm; }
+.capa .baixo h3 { font-size: 9pt; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+.capa .itens { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; max-width: 150mm; }
+.capa .item { display: flex; gap: 10px; align-items: flex-start; font-size: 10.5pt; }
+.capa .item b {
+  flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--brand-soft); color: var(--brand);
+  display: flex; align-items: center; justify-content: center; font-size: 9.5pt;
+}
+.capa .rodape {
+  position: absolute; left: 24mm; right: 24mm; bottom: 16mm; font-size: 8.5pt; color: var(--muted);
+  border-top: 1px solid var(--line); padding-top: 8px; display: flex; justify-content: space-between;
+}
+
+/* ---------- títulos ---------- */
+h2.sec {
+  break-before: page; break-after: avoid;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 19pt; line-height: 1.2; margin: 0 0 6px; color: var(--brand); font-weight: 700;
+}
+h2.sec .n {
+  flex: none; width: 34px; height: 34px; border-radius: 9px; background: var(--brand); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 15pt;
+}
+.lead { font-size: 11pt; color: var(--muted); margin: 0 0 16px; padding-bottom: 12px; border-bottom: 2px solid var(--brand-soft); }
+h3 { font-size: 12.5pt; color: var(--ink); margin: 18px 0 6px; break-after: avoid; }
+h3 .tag { font-size: 8pt; font-weight: 600; color: var(--brand); background: var(--brand-soft); border-radius: 10px; padding: 1px 8px; margin-left: 6px; vertical-align: 2px; }
+h4 { font-size: 10.5pt; margin: 12px 0 4px; break-after: avoid; }
+
+/* ---------- caixas ---------- */
+.box { border-left: 4px solid; border-radius: 6px; padding: 9px 13px 8px; margin: 12px 0; break-inside: avoid; }
+.box > .t { font-size: 8pt; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 3px; }
+.box p:last-child, .box ul:last-child, .box ol:last-child { margin-bottom: 0; }
+.dica { background: var(--ok-soft); border-color: var(--ok); }
+.dica > .t { color: var(--ok); }
+.atencao { background: var(--warn-soft); border-color: var(--warn-line); }
+.atencao > .t { color: var(--warn); }
+.importante { background: var(--bad-soft); border-color: var(--bad); }
+.importante > .t { color: var(--bad); }
+.nota { background: var(--brand-soft); border-color: var(--brand-2); }
+.nota > .t { color: var(--brand); }
+
+/* ---------- passos ---------- */
+.passo { display: grid; grid-template-columns: 30px 1fr; gap: 0 12px; margin: 14px 0 6px; }
+.passo .num {
+  width: 30px; height: 30px; border-radius: 50%; background: var(--brand); color: #fff; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; font-size: 11pt; margin-top: 1px;
+}
+.passo h3 { margin: 4px 0 6px; }
+.passo .corpo > *:last-child { margin-bottom: 0; }
+.mini { display: grid; grid-template-columns: 22px 1fr; gap: 3px 8px; margin: 6px 0 10px; }
+.mini > b {
+  width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--brand-2); color: var(--brand);
+  font-size: 8.5pt; display: flex; align-items: center; justify-content: center; margin-top: 1px;
+}
+
+/* ---------- comandos para digitar ---------- */
+.cmd { margin: 8px 0 12px; break-inside: avoid; border: 1.5px solid var(--brand-2); border-radius: 7px; overflow: hidden; }
+.cmd .rot { background: var(--brand-2); color: #fff; font-size: 7.5pt; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 2px 10px; }
+.cmd pre { margin: 0; padding: 7px 12px; font-family: var(--mono); font-size: 9.8pt; background: #f7fafc; white-space: pre-wrap; }
+
+/* ---------- terminal ---------- */
+.term { break-inside: avoid; border-radius: 8px; overflow: hidden; margin: 10px 0 8px; border: 1px solid #303030; box-shadow: 0 1px 0 rgba(0,0,0,.04); }
+.term .bar {
+  background: #202020; color: #cfcfcf; font: 7.8pt var(--sans); padding: 4px 10px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.term .bar .ctl { letter-spacing: 10px; opacity: .75; font-size: 8pt; }
+.term pre {
+  margin: 0; background: #0c0c0c; color: #cccccc; font-family: var(--mono); font-size: 8.1pt; line-height: 1.42;
+  padding: 9px 12px 10px; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.term .in { color: #f9f1a5; font-weight: 700; }
+.term .dim { color: #8a8a8a; }
+.term .alerta { color: #ffd479; }
+.mk {
+  display: inline-block; width: 15px; height: 15px; line-height: 15px; border-radius: 50%;
+  background: #f0b429; color: #111; font: 700 7.5pt var(--sans); text-align: center; vertical-align: 1px;
+  margin-left: 6px; white-space: nowrap;
+}
+.legenda { margin: 4px 0 12px; }
+.legenda .l { display: grid; grid-template-columns: 22px 1fr; gap: 6px; margin: 4px 0; align-items: start; }
+.legenda .l .mk { margin: 2px 0 0; }
+
+/* ---------- explorador ---------- */
+.explorer { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; break-inside: avoid; margin: 10px 0 14px; }
+.explorer .path { background: var(--soft); padding: 6px 12px; font-size: 8.4pt; color: var(--muted); border-bottom: 1px solid var(--line); font-family: var(--mono); }
+.explorer .row { display: grid; grid-template-columns: 26px 168px 1fr; align-items: center; gap: 10px; padding: 6px 12px; border-bottom: 1px solid #edf0f3; font-size: 9.3pt; }
+.explorer .row:last-child { border-bottom: 0; }
+.explorer .row .d { color: var(--muted); font-size: 8.6pt; }
+.explorer .row.gerado { background: #f6fbf7; }
+.pill { display: inline-block; font-size: 7.2pt; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border-radius: 9px; padding: 0 7px; margin-right: 6px; vertical-align: 1px; }
+.pill.voce { background: var(--brand-soft); color: var(--brand); }
+.pill.ferr { background: #dff1e6; color: var(--ok); }
+.ico { width: 20px; height: 24px; border-radius: 3px; color: #fff; font: 700 6.6pt var(--sans); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 3px; position: relative; }
+.ico::after { content: ""; position: absolute; right: 0; top: 0; border-style: solid; border-width: 0 6px 6px 0; border-color: transparent #fff transparent transparent; opacity: .55; }
+.ico.w { background: #2b579a; }
+.ico.x { background: #217346; }
+.ico.t { background: #6b7684; }
+
+/* ---------- árvore ---------- */
+.arvore { font-family: var(--mono); font-size: 8.8pt; line-height: 1.6; background: var(--soft); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; white-space: pre; break-inside: avoid; margin: 8px 0 12px; }
+.arvore .c { color: var(--muted); font-family: var(--sans); font-size: 8.4pt; }
+.arvore b { color: var(--brand); }
+
+/* ---------- tabelas ---------- */
+table.tb { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 9.1pt; }
+table.tb th { background: var(--brand); color: #fff; text-align: left; font-weight: 600; padding: 6px 8px; font-size: 8.6pt; }
+table.tb td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.tb tr { break-inside: avoid; }
+table.tb tr:nth-child(even) td { background: #f8fafc; }
+table.tb td.msg { font-family: var(--mono); font-size: 7.9pt; color: #2a3340; overflow-wrap: anywhere; }
+
+/* ---------- excel ---------- */
+.xl-wrap { break-inside: avoid; margin: 10px 0 12px; border: 1px solid #c8c8c8; border-radius: 6px; overflow: hidden; }
+.xl-bar { background: #217346; color: #fff; font: 600 8pt var(--sans); padding: 4px 10px; }
+table.xl { border-collapse: collapse; width: 100%; font-family: "Calibri", "Segoe UI", sans-serif; font-size: 8.6pt; }
+table.xl th { background: #f0f0f0; color: #555; font-weight: 400; border: 1px solid #d4d4d4; padding: 2px 6px; text-align: center; }
+table.xl td { border: 1px solid #d4d4d4; padding: 3px 6px; vertical-align: top; }
+table.xl td.rn { background: #f0f0f0; color: #555; text-align: center; width: 24px; }
+table.xl td.vnum { text-align: right; white-space: nowrap; width: 70px; }
+
+/* ---------- documento (papel) ---------- */
+.papel { break-inside: avoid; border: 1px solid var(--line); border-radius: 4px; padding: 14px 20px; margin: 10px 0 12px; background: #fff;
+  font-family: "Times New Roman", Times, serif; font-size: 10pt; line-height: 1.45; box-shadow: 3px 3px 0 #eef1f4; }
+.papel p { margin: 0 0 6px; text-align: justify; }
+.papel .auto { background: #fff1b8; border-radius: 2px; padding: 0 1px; }
+.papel .ind { text-indent: 18px; }
+
+/* ---------- cartões ---------- */
+.duas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0 12px; }
+.card { border: 1px solid var(--line); border-radius: 8px; padding: 10px 13px; break-inside: avoid; background: #fff; }
+.card h4 { margin: 0 0 6px; }
+.card ul { margin-bottom: 0; }
+.card.verde { border-top: 4px solid var(--ok); }
+.card.azul { border-top: 4px solid var(--brand-2); }
+.card.laranja { border-top: 4px solid var(--warn-line); }
+.card.vermelho { border-top: 4px solid var(--bad); }
+
+/* ---------- checklist ---------- */
+ul.check { list-style: none; padding-left: 0; }
+ul.check li { position: relative; padding-left: 24px; margin: 5px 0; }
+ul.check li::before { content: ""; position: absolute; left: 0; top: 3px; width: 13px; height: 13px; border: 1.6px solid var(--brand-2); border-radius: 3px; background: #fff; }
+
+/* ---------- conta ---------- */
+.conta { display: flex; align-items: stretch; gap: 8px; margin: 10px 0 14px; break-inside: avoid; }
+.conta .t { flex: 1; border-radius: 8px; padding: 8px 10px; text-align: center; border: 1px solid var(--line); }
+.conta .t small { display: block; font-size: 7.8pt; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+.conta .t span { display: block; font-size: 8.4pt; color: var(--muted); }
+.conta .t b { display: block; font-size: 12pt; margin-top: 2px; }
+.conta .op { display: flex; align-items: center; font-size: 18pt; font-weight: 300; color: var(--muted); }
+.conta .a { background: var(--brand-soft); border-color: #bcd6e6; }
+.conta .b { background: var(--soft); }
+
+/* ---------- dotação ---------- */
+.dot { font-family: var(--mono); font-size: 11.5pt; text-align: center; padding: 10px 8px 4px; letter-spacing: .02em; }
+.dot .f, .dot .i { border-radius: 4px; padding: 1px 3px; font-weight: 700; }
+.dot .f { background: #ffe1a8; color: #6b3d00; }
+.dot .i { background: #d6ecff; color: #0b4a7a; }
+.dot-leg { display: flex; justify-content: center; gap: 24px; font-size: 8.8pt; padding-bottom: 8px; }
+.dot-leg span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.dot-leg .lf::before { background: #ffe1a8; }
+.dot-leg .li::before { background: #d6ecff; }
+
+/* ---------- instalador ---------- */
+.inst { break-inside: avoid; border: 1px solid #bfc6ce; border-radius: 6px; overflow: hidden; margin: 10px 0 12px; font-family: var(--sans); background: #fff; }
+.inst .bar { background: #f0f0f0; font-size: 8pt; padding: 4px 10px; border-bottom: 1px solid #d6d6d6; display: flex; justify-content: space-between; }
+.inst .corpo { display: grid; grid-template-columns: 70px 1fr; }
+.inst .lado { background: linear-gradient(180deg, #2f6aa1, #ffd343); }
+.inst .cont { padding: 10px 16px 12px; font-size: 8.8pt; }
+.inst .cont .tt { font-size: 12pt; color: #1f3e66; margin-bottom: 4px; }
+.inst .opc { margin: 8px 0; padding: 6px 8px; border-radius: 4px; }
+.inst .opc b { color: #1f3e66; font-size: 10pt; }
+.inst .opc .s { color: #666; font-size: 8pt; }
+.inst .opc.go { outline: 2px dashed var(--ok); outline-offset: 1px; }
+.inst .cb { display: flex; align-items: center; gap: 7px; margin: 4px 0; padding: 3px 6px; border-radius: 4px; }
+.inst .cb i { width: 12px; height: 12px; border: 1px solid #555; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 9pt; line-height: 1; background: #fff; }
+.inst .cb.foco { outline: 2px solid var(--bad); outline-offset: 1px; background: #fff7f6; }
+.seta-nota { font-size: 8.3pt; font-weight: 700; color: var(--bad); margin-left: 6px; }
+
+/* ---------- sumário ---------- */
+.sumario { margin: 6px 0 20px; }
+.sumario .li { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; border-bottom: 1px solid #edf0f3; font-size: 11pt; }
+.sumario .li .n { flex: none; width: 26px; height: 26px; border-radius: 7px; background: var(--brand-soft); color: var(--brand); font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 10pt; align-self: center; }
+.sumario .li .x { flex: 1; }
+.sumario .li .x small { display: block; color: var(--muted); font-size: 8.6pt; }
+.sumario .li .p { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.conv { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.conv .c { border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; font-size: 9.3pt; break-inside: avoid; }
+.conv .c b { display: block; margin-bottom: 4px; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 3px; }
+
+/* ---------- cola rápida ---------- */
+.cola { display: grid; grid-template-columns: 1fr; gap: 0; }
+.cola .et { display: grid; grid-template-columns: 34px 1fr; gap: 10px; padding: 9px 0; border-bottom: 1px dashed var(--line); break-inside: avoid; }
+.cola .et .num { width: 30px; height: 30px; border-radius: 50%; background: var(--brand); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.cola .et p { margin: 0; }
+.cola .et .s { color: var(--muted); font-size: 9pt; }
+.primeira { background: var(--soft); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin: 8px 0 14px; break-inside: avoid; }
+
+.faq h4 { color: var(--brand); margin-top: 14px; }
+.faq p { margin-bottom: 4px; }
+.faq > div { break-inside: avoid; }
+
+.fig { margin: 8px 0 14px; break-inside: avoid; }
+.fig svg { width: 100%; height: auto; display: block; }
+.cap { font-size: 8.4pt; color: var(--muted); margin-top: 4px; text-align: center; }
+.mt0 { margin-top: 0; }
+.nobreak, .junto { break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<!-- =============================== CAPA =============================== -->
+<section class="capa">
+  <div class="topo">
+    <div class="kicker">Manual de uso</div>
+    <h1>Gerador de Minutas<br>de Decreto</h1>
+    <div class="sub">Como usar a ferramenta para conferir os incisos e montar a minuta do decreto de crédito suplementar. Passo a passo, para quem nunca usou e sem precisar saber programação.</div>
+    <div class="arq">gerar_minuta.py</div>
+    <svg class="deco" viewBox="0 0 200 240" aria-hidden="true">
+      <rect x="40" y="10" width="150" height="196" rx="10" fill="rgba(255,255,255,.10)" stroke="rgba(255,255,255,.35)" stroke-width="2"/>
+      <rect x="14" y="34" width="150" height="196" rx="10" fill="#fff"/>
+      <rect x="34" y="58" width="78" height="9" rx="3" fill="#0d4a6b"/>
+      <rect x="34" y="78" width="110" height="6" rx="3" fill="#c9d6e0"/>
+      <rect x="34" y="92" width="110" height="6" rx="3" fill="#c9d6e0"/>
+      <rect x="34" y="106" width="86" height="6" rx="3" fill="#c9d6e0"/>
+      <rect x="34" y="126" width="110" height="6" rx="3" fill="#ffd479"/>
+      <rect x="34" y="140" width="96" height="6" rx="3" fill="#ffd479"/>
+      <rect x="34" y="160" width="110" height="6" rx="3" fill="#c9d6e0"/>
+      <rect x="34" y="174" width="70" height="6" rx="3" fill="#c9d6e0"/>
+      <circle cx="146" cy="206" r="22" fill="#1d7a4c"/>
+      <path d="M135 206 l8 8 l15 -16" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div class="baixo">
+    <h3>Neste manual</h3>
+    <div class="itens">
+      <div class="item"><b>1</b><span>Para que serve a ferramenta e o que ela faz sozinha</span></div>
+      <div class="item"><b>2</b><span>Como preparar o computador (só na primeira vez)</span></div>
+      <div class="item"><b>3</b><span>Como organizar a pasta de cada minuta</span></div>
+      <div class="item"><b>4</b><span>Como usar a ferramenta, tela por tela</span></div>
+      <div class="item"><b>5</b><span>O que significam os avisos</span></div>
+      <div class="item"><b>6</b><span>Problemas comuns, dúvidas e uma cola rápida</span></div>
+    </div>
+  </div>
+  <div class="rodape">
+    <span>Outubro de 2026</span>
+    <span>Corresponde à versão do script no repositório splor-mg/minuta-decreto</span>
+  </div>
+</section>
+
+<!-- =============================== SUMÁRIO =============================== -->
+<h2 class="sec" style="break-before: auto"><span>Sumário</span></h2>
+<div class="sumario">
+  <div class="li"><span class="n">1</span><span class="x">O que a ferramenta faz<small>As duas etapas, o que ela preenche sozinha e o que continua com você</small></span><span class="p">3</span></div>
+  <div class="li"><span class="n">2</span><span class="x">Preparando o computador<small>Só na primeira vez: Python, complementos e acesso às pastas</small></span><span class="p">5</span></div>
+  <div class="li"><span class="n">3</span><span class="x">Organizando a pasta da minuta<small>O que precisa estar na pasta e como escrever os incisos</small></span><span class="p">8</span></div>
+  <div class="li"><span class="n">4</span><span class="x">Usando a ferramenta, passo a passo<small>Do primeiro clique até a minuta pronta no Word</small></span><span class="p">10</span></div>
+  <div class="li"><span class="n">5</span><span class="x">Entendendo os avisos<small>Fontes especiais e divergência de valores</small></span><span class="p">15</span></div>
+  <div class="li"><span class="n">6</span><span class="x">Problemas comuns e como resolver<small>Cada mensagem de erro e o que fazer</small></span><span class="p">17</span></div>
+  <div class="li"><span class="n">7</span><span class="x">Perguntas frequentes</span><span class="p">19</span></div>
+  <div class="li"><span class="n">8</span><span class="x">Cola rápida<small>O uso diário resumido em uma página</small></span><span class="p">21</span></div>
+  <div class="li"><span class="n">A</span><span class="x">Apêndice: para quem dá suporte técnico</span><span class="p">22</span></div>
+</div>
+
+<h3>Como ler este manual</h3>
+<div class="conv">
+  <div class="c"><b>Telas da ferramenta</b>Os quadros pretos reproduzem a janela da ferramenta. O que <span style="background:#0c0c0c;color:#f9f1a5;font-family:var(--mono);font-weight:700;padding:0 4px;border-radius:3px">aparece em amarelo</span> é o que você digita. As bolinhas <span class="mk" style="margin:0">1</span> são explicadas logo abaixo de cada tela.</div>
+  <div class="c"><b>Comandos para digitar</b>Quando houver um quadro <span style="color:var(--brand-2);font-weight:700">DIGITE</span>, escreva exatamente o que está nele e aperte <kbd>Enter</kbd>.</div>
+  <div class="c"><b>Caixas coloridas</b><span class="sw" style="background:var(--ok)"></span>Dica &nbsp; <span class="sw" style="background:var(--warn-line)"></span>Atenção &nbsp; <span class="sw" style="background:var(--bad)"></span>Importante &nbsp; <span class="sw" style="background:var(--brand-2)"></span>Para saber</div>
+  <div class="c"><b>Exemplos</b>Os exemplos usam uma minuta <strong>fictícia</strong> (minuta 250, de outubro) com valores inventados. Os caminhos longos foram encurtados com “…”.</div>
+</div>
+
+<!-- =============================== 1 =============================== -->
+<h2 class="sec"><span class="n">1</span><span>O que a ferramenta faz</span></h2>
+<p class="lead">O <strong>gerar_minuta.py</strong> é um pequeno programa que faz em segundos um trabalho que antes era manual. Ele lê os documentos de solicitação dos órgãos, monta os incisos do Art. 2º e preenche a minuta do decreto com os valores e as dotações exportados do SIAFI.</p>
+
+<div class="fig">
+<svg viewBox="0 0 700 330" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5d6877"/>
+    </marker>
+  </defs>
+  <!-- rótulos de coluna -->
+  <text x="100" y="16" text-anchor="middle" font-size="11" font-weight="700" fill="#5d6877" letter-spacing="1.5">VOCÊ COLOCA NA PASTA</text>
+  <text x="350" y="16" text-anchor="middle" font-size="11" font-weight="700" fill="#5d6877" letter-spacing="1.5">A FERRAMENTA FAZ</text>
+  <text x="600" y="16" text-anchor="middle" font-size="11" font-weight="700" fill="#5d6877" letter-spacing="1.5">A FERRAMENTA CRIA</text>
+
+  <!-- entradas -->
+  <rect x="10" y="32" width="180" height="70" rx="9" fill="#fff" stroke="#c4ccd6" stroke-width="1.5"/>
+  <rect x="22" y="46" width="18" height="22" rx="2" fill="#2b579a"/><text x="31" y="63" text-anchor="middle" font-size="7" font-weight="700" fill="#fff">W</text>
+  <text x="48" y="56" font-size="12.5" font-weight="700" fill="#1c2633">Documentos</text>
+  <text x="48" y="71" font-size="12.5" font-weight="700" fill="#1c2633">dos órgãos</text>
+  <text x="22" y="91" font-size="10" fill="#5d6877">arquivos .docx com os incisos</text>
+
+  <rect x="10" y="168" width="180" height="62" rx="9" fill="#fff" stroke="#c4ccd6" stroke-width="1.5"/>
+  <rect x="22" y="180" width="18" height="22" rx="2" fill="#6b7684"/><text x="31" y="197" text-anchor="middle" font-size="6.5" font-weight="700" fill="#fff">TXT</text>
+  <text x="48" y="192" font-size="12.5" font-weight="700" fill="#1c2633">Arquivo do SIAFI</text>
+  <text x="48" y="207" font-size="10" fill="#5d6877">Minuta0250.TXT</text>
+  <text x="22" y="222" font-size="10" fill="#5d6877">valores e dotações</text>
+
+  <rect x="10" y="248" width="180" height="62" rx="9" fill="#fff" stroke="#c4ccd6" stroke-width="1.5" stroke-dasharray="5 3"/>
+  <rect x="22" y="260" width="18" height="22" rx="2" fill="#2b579a"/><text x="31" y="277" text-anchor="middle" font-size="7" font-weight="700" fill="#fff">W</text>
+  <text x="48" y="272" font-size="12.5" font-weight="700" fill="#1c2633">Modelo oficial</text>
+  <text x="48" y="287" font-size="10" fill="#5d6877">minuta xxx.docx</text>
+  <text x="22" y="302" font-size="10" fill="#5d6877">já fica na pasta do OneDrive</text>
+
+  <!-- etapas -->
+  <rect x="260" y="32" width="180" height="70" rx="9" fill="#0d4a6b"/>
+  <text x="350" y="56" text-anchor="middle" font-size="10" font-weight="700" fill="#bfe0f2" letter-spacing="1.5">ETAPA 1</text>
+  <text x="350" y="76" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">Conferência</text>
+  <text x="350" y="93" text-anchor="middle" font-size="10" fill="#d7ebf6">acha e soma os incisos</text>
+
+  <rect x="260" y="200" width="180" height="70" rx="9" fill="#0d4a6b"/>
+  <text x="350" y="224" text-anchor="middle" font-size="10" font-weight="700" fill="#bfe0f2" letter-spacing="1.5">ETAPA 2</text>
+  <text x="350" y="244" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">Geração</text>
+  <text x="350" y="261" text-anchor="middle" font-size="10" fill="#d7ebf6">verifica e preenche o modelo</text>
+
+  <!-- saídas -->
+  <rect x="510" y="32" width="180" height="70" rx="9" fill="#e7f4ec" stroke="#9fd0b3" stroke-width="1.5"/>
+  <rect x="522" y="46" width="18" height="22" rx="2" fill="#217346"/><text x="531" y="63" text-anchor="middle" font-size="7" font-weight="700" fill="#fff">X</text>
+  <text x="548" y="56" font-size="12.5" font-weight="700" fill="#1c2633">conferencia.xlsx</text>
+  <text x="548" y="71" font-size="10" fill="#5d6877">planilha com os</text>
+  <text x="548" y="84" font-size="10" fill="#5d6877">incisos e valores</text>
+
+  <rect x="510" y="200" width="180" height="70" rx="9" fill="#e7f4ec" stroke="#9fd0b3" stroke-width="1.5"/>
+  <rect x="522" y="214" width="18" height="22" rx="2" fill="#2b579a"/><text x="531" y="231" text-anchor="middle" font-size="7" font-weight="700" fill="#fff">W</text>
+  <text x="548" y="224" font-size="12.5" font-weight="700" fill="#1c2633">minuta 250.docx</text>
+  <text x="548" y="239" font-size="10" fill="#5d6877">minuta pronta</text>
+  <text x="548" y="252" font-size="10" fill="#5d6877">para revisão</text>
+
+  <!-- setas -->
+  <line x1="190" y1="67" x2="257" y2="67" stroke="#5d6877" stroke-width="2" marker-end="url(#seta)"/>
+  <line x1="440" y1="67" x2="507" y2="67" stroke="#5d6877" stroke-width="2" marker-end="url(#seta)"/>
+  <path d="M600 102 V 140 H 350 V 197" fill="none" stroke="#5d6877" stroke-width="2" marker-end="url(#seta)"/>
+  <rect x="380" y="128" width="196" height="24" rx="12" fill="#fff5de" stroke="#d99100" stroke-width="1.2"/>
+  <text x="478" y="144" text-anchor="middle" font-size="10.5" font-weight="700" fill="#a15c00">você confere e responde “s”</text>
+  <line x1="190" y1="221" x2="257" y2="221" stroke="#5d6877" stroke-width="2" marker-end="url(#seta)"/>
+  <path d="M190 279 H 225 V 250 H 257" fill="none" stroke="#5d6877" stroke-width="2" marker-end="url(#seta)"/>
+  <line x1="440" y1="235" x2="507" y2="235" stroke="#5d6877" stroke-width="2" marker-end="url(#seta)"/>
+</svg>
+<div class="cap">Figura 1. O caminho dos arquivos: o que você fornece, o que a ferramenta faz e o que ela cria.</div>
+</div>
+
+<h3>As duas etapas</h3>
+<div class="mini">
+  <b>1</b><div><strong>Conferência.</strong> A ferramenta lê <em>todos</em> os documentos Word (.docx) da pasta da minuta. Neles, procura as frases que começam com <em>“do saldo…”</em> ou <em>“do excesso…”</em> e trazem <em>“no valor de R$…”</em>. Junta as frases iguais, escreve o valor por extenso, numera os incisos (a partir do II) e grava tudo numa planilha chamada <code>conferencia.xlsx</code>.</div>
+  <b>✓</b><div><strong>Pausa para você conferir.</strong> A ferramenta para e pergunta se pode continuar. É a hora de abrir a planilha e ver se os incisos e os valores estão certos.</div>
+  <b>2</b><div><strong>Geração.</strong> Com o arquivo do SIAFI (<code>Minuta0250.TXT</code>), a planilha e o modelo oficial, a ferramenta cria a minuta (<code>minuta 250.docx</code>). Antes, faz duas verificações automáticas: se há <strong>fontes de recursos especiais</strong> e se <strong>a conta fecha</strong> (o total suplementado deve ser igual à anulação somada aos incisos).</div>
+</div>
+
+<h3>O que ela faz sozinha e o que continua com você</h3>
+<div class="duas">
+  <div class="card verde">
+    <h4>A ferramenta preenche</h4>
+    <ul>
+      <li>O valor do crédito na ementa e no Art. 1º, em número e por extenso.</li>
+      <li>O Art. 2º: o inciso I (anulação) e os incisos de saldo e excesso.</li>
+      <li>O número do registro no SIAFI.</li>
+      <li>O Anexo, com as dotações de suplementação e de anulação e os totais.</li>
+      <li>Os acentos de palavras comuns nos nomes dos órgãos (ex.: EDUCACAO → EDUCAÇÃO).</li>
+    </ul>
+  </div>
+  <div class="card azul">
+    <h4>Continua com você</h4>
+    <ul>
+      <li>Colocar na pasta os arquivos certos.</li>
+      <li>Conferir a planilha de incisos.</li>
+      <li>Decidir o que fazer quando aparecer um aviso.</li>
+      <li>Revisar a minuta no Word antes de enviar.</li>
+      <li>Número do decreto, datas e fecho, que ficam como estão no modelo.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="box nota">
+  <div class="t">Para saber</div>
+  <p>A ferramenta <strong>só lê</strong> os documentos dos órgãos, o TXT e o modelo, e nunca altera esses arquivos. Ela só cria (ou substitui) dois arquivos dentro da pasta da minuta: <code>conferencia.xlsx</code> e <code>minuta NNN.docx</code>.</p>
+</div>
+
+<!-- =============================== 2 =============================== -->
+<h2 class="sec"><span class="n">2</span><span>Preparando o computador</span></h2>
+<p class="lead">Faça isto <strong>uma única vez</strong> em cada computador. Leva uns 10 minutos. Se o seu computador já roda a ferramenta, pule para a seção 3.</p>
+
+<h3>2.1 Abrir o Prompt de Comando</h3>
+<p>Vários passos deste manual usam o <strong>Prompt de Comando</strong>, uma janela preta onde você digita instruções. Para abri-lo:</p>
+<ol>
+  <li>Aperte a tecla <kbd>⊞ Windows</kbd> do teclado.</li>
+  <li>Digite <strong>cmd</strong>.</li>
+  <li>Aperte <kbd>Enter</kbd>. Uma janela preta vai abrir.</li>
+</ol>
+<p>Para usar um comando: digite o texto exatamente como está no quadro (ou copie e cole) e aperte <kbd>Enter</kbd>.</p>
+
+<h3>2.2 Verificar se o Python já está instalado</h3>
+<p>O <strong>Python</strong> é o “motor” que faz a ferramenta funcionar. Muitos computadores já têm. No Prompt de Comando:</p>
+<div class="cmd"><div class="rot">Digite</div><pre>python --version</pre></div>
+<div class="duas">
+  <div class="card verde">
+    <h4>Apareceu um número de versão</h4>
+    <p>Por exemplo, <code>Python 3.13.2</code>. Qualquer versão a partir da <strong>3.9</strong> serve. O Python já está instalado: pule para o item 2.4.</p>
+  </div>
+  <div class="card laranja">
+    <h4>Apareceu um erro ou abriu a Microsoft Store</h4>
+    <p>Por exemplo, <em>“'python' não é reconhecido como um comando interno…”</em>. Feche a Store, se ela abrir, e siga o item 2.3.</p>
+  </div>
+</div>
+
+<h3>2.3 Instalar o Python <span class="tag">se precisar</span></h3>
+<ol>
+  <li>No navegador, acesse <a href="https://www.python.org/downloads/windows/"><strong>python.org/downloads/windows</strong></a> e baixe o instalador para Windows (“Windows installer (64-bit)”) de uma versão 3 recente.</li>
+  <li>Abra o arquivo baixado. Vai aparecer uma tela parecida com esta:</li>
+</ol>
+<div class="inst">
+  <div class="bar"><span>Python 3.13 (64-bit) Setup</span><span>✕</span></div>
+  <div class="corpo">
+    <div class="lado"></div>
+    <div class="cont">
+      <div class="tt">Install Python 3.13 (64-bit)</div>
+      <div style="color:#555">Select Install Now to install Python with default settings, or choose Customize to enable or disable features.</div>
+      <div class="opc go"><b>→ Install Now</b><div class="s">C:\Users\seu_usuario\AppData\Local\Programs\Python\Python313</div></div>
+      <div class="opc"><b style="font-size:9pt">→ Customize installation</b></div>
+      <div class="cb"><i></i> Use admin privileges when installing py.exe <span class="seta-nota" style="color:var(--muted);font-weight:600">← desmarque se você não for administrador</span></div>
+      <div class="cb foco"><i>✓</i> <strong>Add python.exe to PATH</strong> <span class="seta-nota">← MARQUE ESTA</span></div>
+    </div>
+  </div>
+</div>
+<ol start="3">
+  <li>Marque a caixa <strong>“Add python.exe to PATH”</strong>, no rodapé da tela.</li>
+  <li>Se você não tem permissão de administrador no computador, <strong>desmarque</strong> “Use admin privileges when installing py.exe”.</li>
+  <li>Clique em <strong>Install Now</strong> e aguarde. No final, clique em <strong>Close</strong>.</li>
+  <li><strong>Feche</strong> o Prompt de Comando, abra de novo (item 2.1) e repita o <code>python --version</code>. Agora deve aparecer o número da versão.</li>
+</ol>
+<div class="box atencao">
+  <div class="t">Atenção</div>
+  <p>A caixa <strong>“Add python.exe to PATH”</strong> é o detalhe mais importante. Sem ela, o Windows não encontra o Python e os comandos deste manual dão erro. Se esqueceu, rode o instalador de novo e escolha <em>Modify</em> ou <em>Uninstall</em>, e depois instale outra vez.</p>
+</div>
+<div class="box importante">
+  <div class="t">Se o computador bloquear a instalação</div>
+  <p>Peça ao suporte de TI para instalar o <strong>Python 3 (versão 3.9 ou mais nova)</strong> com a opção <strong>“Add python.exe to PATH”</strong> marcada.</p>
+</div>
+
+<h3>2.4 Instalar os complementos</h3>
+<p>A ferramenta usa três complementos gratuitos do Python, chamados de <em>bibliotecas</em>: um que lê e escreve arquivos do Word, outro para o Excel e outro que escreve valores por extenso. Para instalar os três de uma vez, no Prompt de Comando:</p>
+<div class="cmd"><div class="rot">Digite</div><pre>python -m pip install python-docx openpyxl num2words</pre></div>
+<p>Vão aparecer várias linhas enquanto ele baixa e instala. Aguarde até a janela voltar a mostrar o cursor. Deu certo se uma das últimas linhas começar com <code>Successfully installed</code>, ou com <code>Requirement already satisfied</code> se os complementos já estavam instalados. Avisos com a palavra <code>WARNING</code> podem ser ignorados.</p>
+<p>Para ter certeza de que está tudo pronto, faça este teste:</p>
+<div class="cmd"><div class="rot">Digite</div><pre>python -c "import docx, openpyxl, num2words; print('Tudo pronto!')"</pre></div>
+<div class="term"><div class="bar"><span>Prompt de Comando</span><span class="ctl">—☐✕</span></div><pre>C:\Users\seu_usuario&gt;<span class="in">python -c "import docx, openpyxl, num2words; print('Tudo pronto!')"</span>
+Tudo pronto!</pre></div>
+<div class="box atencao">
+  <div class="t">Atenção</div>
+  <ul>
+    <li>O nome do complemento do Word é <code>python-docx</code>, e não só <code>docx</code>. O pacote chamado <code>docx</code> é outro e não funciona.</li>
+    <li>Se aparecer erro de conexão (<em>connection</em>, <em>proxy</em>, <em>SSL</em>), a rede bloqueou o download. Peça ajuda ao suporte de TI.</li>
+  </ul>
+</div>
+
+<h3>2.5 Ter o arquivo gerar_minuta.py</h3>
+<p>A ferramenta é um único arquivo: <strong>gerar_minuta.py</strong>. Salve-o numa pasta fácil de achar. O lugar onde ele fica <strong>não faz diferença</strong> para o funcionamento, porque a ferramenta sempre procura as minutas na pasta do OneDrive (item 2.6).</p>
+<div class="box importante">
+  <div class="t">Use sempre a versão mais recente</div>
+  <p>A versão oficial fica no repositório <strong>splor-mg/minuta-decreto</strong> do GitHub. Versões antigas espalhadas em pastas podem não ter as correções e verificações descritas neste manual. Na dúvida, peça o arquivo atualizado ao responsável pela ferramenta.</p>
+</div>
+
+<h3>2.6 Conferir a pasta do OneDrive</h3>
+<p>A ferramenta procura os arquivos sempre neste endereço:</p>
+<div class="arvore">C:\Users\<b>seu_usuario</b>\OneDrive - CAMG\General\@dcmefo\2026\Decretos</div>
+<p>Abra o Explorador de Arquivos e confira se você consegue chegar até ela e se, lá dentro, existem:</p>
+<ul class="check">
+  <li>a pasta <strong>Minutas Finalizadas</strong>;</li>
+  <li>o modelo <strong>Manual decreto\minutas padrão\minuta xxx.docx</strong>.</li>
+</ul>
+<p>Se a pasta <em>@dcmefo</em> não aparecer dentro de <em>OneDrive - CAMG\General</em>, a biblioteca da equipe ainda não está sincronizada no seu OneDrive. Peça ajuda a um colega ou ao suporte.</p>
+
+<div class="box dica">
+  <div class="t">Pronto para usar quando…</div>
+  <ul class="check">
+    <li><code>python --version</code> mostra a versão 3.9 ou mais nova;</li>
+    <li>o teste mostra <code>Tudo pronto!</code>;</li>
+    <li>você sabe onde está o arquivo <strong>gerar_minuta.py</strong>;</li>
+    <li>você consegue abrir a pasta <strong>Decretos</strong> no OneDrive.</li>
+  </ul>
+</div>
+
+<!-- =============================== 3 =============================== -->
+<h2 class="sec"><span class="n">3</span><span>Organizando a pasta da minuta</span></h2>
+<p class="lead">Cada minuta tem a sua própria pasta dentro de <strong>Minutas Finalizadas</strong>, separada por mês. A ferramenta trabalha com <strong>tudo</strong> o que estiver nessa pasta, por isso organizá-la bem é metade do caminho.</p>
+
+<h3>Onde fica cada coisa</h3>
+<div class="arvore">Decretos
+├── Manual decreto
+│   └── minutas padrão
+│       └── minuta xxx.docx         <span class="c">← modelo oficial (não mexer)</span>
+└── Minutas Finalizadas
+    └── 10 outubro                  <span class="c">← pasta do mês</span>
+        └── <b>minuta 250</b>              <span class="c">← pasta desta minuta (você informa esta)</span></div>
+
+<h3>O que tem dentro da pasta da minuta</h3>
+<div class="explorer">
+  <div class="path">…\Minutas Finalizadas\10 outubro\minuta 250</div>
+  <div class="row"><span class="ico w">W</span><span>1261 SEE 0000200.docx</span><span class="d"><span class="pill voce">você coloca</span>Documento do órgão, com os incisos. Lido na Etapa 1.</span></div>
+  <div class="row"><span class="ico w">W</span><span>1401 CBMMG 0000080.docx</span><span class="d"><span class="pill voce">você coloca</span>Outro documento de órgão. Lido na Etapa 1.</span></div>
+  <div class="row"><span class="ico t">TXT</span><span>Minuta0250.TXT</span><span class="d"><span class="pill voce">você coloca</span>Exportado do SIAFI. Lido na Etapa 2.</span></div>
+  <div class="row gerado"><span class="ico x">X</span><span>conferencia.xlsx</span><span class="d"><span class="pill ferr">ferramenta cria</span>Planilha com os incisos (Etapa 1).</span></div>
+  <div class="row gerado"><span class="ico w">W</span><span>minuta 250.docx</span><span class="d"><span class="pill ferr">ferramenta cria</span>A minuta pronta para revisão (Etapa 2).</span></div>
+</div>
+
+<h3>Antes de rodar, a pasta precisa ter</h3>
+<div class="mini">
+  <b>1</b><div><strong>Os documentos Word (.docx) dos órgãos</strong> com os textos dos incisos de saldo e de excesso. Se a minuta não tiver nenhum inciso desse tipo, ainda assim precisa haver pelo menos um .docx na pasta.</div>
+  <b>2</b><div><strong>O arquivo TXT exportado do SIAFI</strong>, com o nome começando por <em>Minuta</em> (ex.: <code>Minuta0250.TXT</code>). O número no nome vira o nome da minuta gerada: <code>Minuta0250.TXT</code> gera <code>minuta 250.docx</code>. Deixe <strong>só um</strong> TXT na pasta.</div>
+</div>
+
+<h3>Como escrever os incisos para a ferramenta encontrar</h3>
+<p>Nos documentos dos órgãos, a ferramenta só reconhece os incisos escritos no padrão abaixo. Os trechos marcados são os que ela procura:</p>
+<div class="papel" style="font-size:10.5pt">
+  <p>II - <span class="auto"><strong>do saldo</strong></span> financeiro da fonte 60 - Recursos Diretamente Arrecadados da Secretaria de Estado de Educação <span class="auto"><strong>no valor de R$ 50.000,00</strong></span> (cinquenta mil reais);</p>
+</div>
+<ul class="check">
+  <li>O trecho começa com <strong>“do saldo”</strong> ou <strong>“do excesso”</strong>. A ferramenta copia daí até antes de <em>“no valor de”</em>. O que vem antes (como “II -”) é ignorado e renumerado.</li>
+  <li>Tem a expressão <strong>“no valor de”</strong>, seguida do valor em reais <strong>com centavos</strong>: <code>R$ 50.000,00</code>. Um valor escrito como <code>R$ 50.000</code>, sem os centavos, <strong>não é encontrado</strong>.</li>
+  <li>A frase inteira fica <strong>no mesmo parágrafo</strong>, sem <kbd>Enter</kbd> nem quebra de linha no meio.</li>
+  <li>Maiúsculas e minúsculas não fazem diferença.</li>
+</ul>
+<p>Se dois documentos tiverem <strong>exatamente a mesma descrição</strong> (desconsiderando maiúsculas e espaços a mais), a ferramenta soma os valores num inciso só. É isso que a tela chama de <em>consolidação</em>.</p>
+
+<div class="box importante">
+  <div class="t">Importante: deixe a pasta “limpa”</div>
+  <p><strong>Todo</strong> arquivo .docx da pasta é lido na Etapa 1, <strong>inclusive uma minuta gerada antes</strong>, e ela contém os mesmos incisos. Por isso:</p>
+  <ul>
+    <li>Se for rodar a ferramenta de novo, <strong>mova ou apague a <code>minuta NNN.docx</code> antiga</strong> antes. Se ela ficar na pasta, os incisos são contados em dobro (veja a seção 5.2).</li>
+    <li>Não deixe na pasta versões antigas ou cópias dos documentos dos órgãos.</li>
+    <li>Os arquivos temporários do Word, que começam com <code>~$</code>, são ignorados. Não se preocupe com eles.</li>
+  </ul>
+</div>
+
+<!-- =============================== 4 =============================== -->
+<h2 class="sec"><span class="n">4</span><span>Usando a ferramenta, passo a passo</span></h2>
+<p class="lead">Com o computador preparado (seção 2) e a pasta organizada (seção 3), siga os sete passos abaixo. No dia a dia, o processo todo leva poucos minutos.</p>
+
+<div class="passo"><div class="num">1</div><div class="corpo">
+  <h3>Abrir a ferramenta</h3>
+  <p>Há dois jeitos. Os dois fazem a mesma coisa.</p>
+  <div class="duas">
+    <div class="card azul">
+      <h4>Jeito A: dois cliques (mais simples)</h4>
+      <p>Dê dois cliques no arquivo <strong>gerar_minuta.py</strong>. Uma janela preta vai abrir.</p>
+      <p style="margin:0;font-size:9pt;color:var(--muted)">Se o arquivo abrir num editor de texto em vez de rodar, clique nele com o botão direito → <strong>Abrir com</strong> → <strong>Python</strong>.</p>
+    </div>
+    <div class="card azul">
+      <h4>Jeito B: pelo Prompt (melhor quando dá erro)</h4>
+      <ol style="margin-bottom:0">
+        <li>Abra a pasta onde está o <strong>gerar_minuta.py</strong>.</li>
+        <li>Clique na <strong>barra de endereço</strong> do Explorador, apague o que estiver escrito, digite <strong>cmd</strong> e aperte <kbd>Enter</kbd>.</li>
+        <li>Na janela preta, digite <code>python gerar_minuta.py</code> e aperte <kbd>Enter</kbd>.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="box dica">
+    <div class="t">Dica</div>
+    <p>No Jeito A, a janela <strong>fecha sozinha 5 segundos depois de terminar</strong>. Se aparecer um erro, pode não dar tempo de ler. No Jeito B, a janela continua aberta e dá para ler tudo com calma. Use o Jeito B sempre que algo der errado.</p>
+  </div>
+</div></div>
+
+<div class="passo"><div class="num">2</div><div class="corpo">
+  <div class="junto"><h3>Informar a pasta da minuta</h3>
+  <p>A ferramenta mostra onde vai procurar e pergunta qual é a pasta da minuta:</p>
+  <div class="term"><div class="bar"><span>gerar_minuta.py</span><span class="ctl">—☐✕</span></div><pre>============================================================
+  Gerador de Minuta de Decreto — Conferência + Geração
+============================================================
+
+Base: C:\Users\seu_usuario\OneDrive - CAMG\General\@dcmefo\2026\Decretos\Minutas Finalizadas <span class="mk">1</span>
+Informe a subpasta da minuta (ex: 05 maio\minuta 83):
+&gt; <span class="in">10 outubro\minuta 250</span> <span class="mk">2</span></pre></div></div>
+  <div class="legenda">
+    <div class="l"><span class="mk">1</span><span>A <strong>Base</strong> é a pasta <em>Minutas Finalizadas</em> no OneDrive. Você não precisa digitar essa parte.</span></div>
+    <div class="l"><span class="mk">2</span><span>Digite o <strong>mês</strong>, uma barra invertida <kbd>\</kbd> e o <strong>nome da pasta da minuta</strong>, exatamente como aparecem no Explorador (com espaços e acentos). Depois aperte <kbd>Enter</kbd>.</span></div>
+  </div>
+  <table class="tb">
+    <thead><tr><th style="width:56%">Pasta no OneDrive</th><th>O que digitar</th></tr></thead>
+    <tr><td>Minutas Finalizadas\10 outubro\minuta 250</td><td><code>10 outubro\minuta 250</code></td></tr>
+    <tr><td>Minutas Finalizadas\09 setembro\minuta 183 fonte 95</td><td><code>09 setembro\minuta 183 fonte 95</code></td></tr>
+    <tr><td>Minutas Finalizadas\03 marco\minuta 40</td><td><code>03 marco\minuta 40</code> <span style="font-size:8.5pt;color:var(--muted)">(sem cedilha, igual ao nome da pasta)</span></td></tr>
+  </table>
+  <div class="box dica">
+    <div class="t">Atalho: copiar e colar o caminho</div>
+    <ol>
+      <li>No Explorador, clique com o <strong>botão direito</strong> na pasta da minuta e escolha <strong>Copiar como caminho</strong> (ou selecione a pasta e aperte <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd>).</li>
+      <li>Na janela preta, cole com <kbd>Ctrl</kbd>+<kbd>V</kbd> (ou com o botão direito do mouse) e aperte <kbd>Enter</kbd>.</li>
+    </ol>
+    <p>O caminho colado vem completo e entre aspas, e a ferramenta entende assim mesmo. Isso evita erros de digitação.</p>
+  </div>
+</div></div>
+
+<div class="passo"><div class="num">3</div><div class="corpo">
+  <div class="junto"><h3>Etapa 1: a conferência</h3>
+  <p>Logo depois, a ferramenta lê os documentos e mostra o resultado:</p>
+  <div class="term"><div class="bar"><span>gerar_minuta.py</span><span class="ctl">—☐✕</span></div><pre>------------------------------------------------------------
+  Etapa 1 — Conferência
+------------------------------------------------------------
+Processo concluído. 2 incisos lidos, <span class="mk">1</span> 2 após consolidação. <span class="mk">2</span> Arquivo: …\Minutas Finalizadas\10 outubro\minuta 250\conferencia.xlsx <span class="mk">3</span>
+
+============================================================
+  Conferência concluída. Prosseguir com a geração da minuta? [s/n]: <span class="mk">4</span></pre></div></div>
+  <div class="legenda">
+    <div class="l"><span class="mk">1</span><span><strong>Incisos lidos:</strong> quantas frases de saldo ou excesso a ferramenta encontrou, somando todos os documentos.</span></div>
+    <div class="l"><span class="mk">2</span><span><strong>Após consolidação:</strong> quantos incisos ficaram depois de juntar as descrições idênticas.</span></div>
+    <div class="l"><span class="mk">3</span><span>Onde a planilha <code>conferencia.xlsx</code> foi salva: na própria pasta da minuta.</span></div>
+    <div class="l"><span class="mk">4</span><span>A pergunta. <strong>Não responda ainda.</strong> Primeiro faça o Passo 4.</span></div>
+  </div>
+  <div class="box atencao">
+    <div class="t">Os números fazem sentido?</div>
+    <p>Se você esperava 5 incisos e apareceram 10, provavelmente há uma minuta antiga ou um documento repetido na pasta. Responda <strong>n</strong>, arrume a pasta (seção 3) e rode de novo.</p>
+  </div>
+  <p>Se nenhum documento tiver incisos de saldo ou excesso, aparece a mensagem abaixo. Isso é <strong>normal</strong> quando a minuta só tem anulação. Nesse caso o Art. 2º sai num parágrafo único, sem incisos.</p>
+  <div class="term"><div class="bar"><span>gerar_minuta.py</span><span class="ctl">—☐✕</span></div><pre>Nenhum inciso de 'do saldo'/'do excesso' com 'no valor de' encontrado.
+Arquivo criado vazio (apenas cabeçalho): …\minuta 250\conferencia.xlsx</pre></div>
+</div></div>
+
+<div class="passo"><div class="num">4</div><div class="corpo">
+  <div class="junto"><h3>Conferir a planilha conferencia.xlsx</h3>
+  <p>Com a pergunta ainda na tela, abra a pasta da minuta e dê dois cliques em <strong>conferencia.xlsx</strong>. Ela tem este formato:</p>
+  <div class="xl-wrap">
+    <div class="xl-bar">conferencia.xlsx · planilha “base”</div>
+    <table class="xl">
+      <tr><th></th><th>A</th><th>B</th></tr>
+      <tr><td class="rn">1</td><td>incisos</td><td>valor</td></tr>
+      <tr><td class="rn">2</td><td>II - do saldo financeiro da fonte 60 - Recursos Diretamente Arrecadados da Secretaria de Estado de Educação no valor de R$50.000,00 (cinquenta mil reais);</td><td class="vnum">50000</td></tr>
+      <tr><td class="rn">3</td><td>III - do excesso de arrecadação da receita de Taxa de Incêndio do Corpo de Bombeiros Militar do Estado de Minas Gerais no valor de R$25.000,50 (vinte e cinco mil reais e cinquenta centavos);</td><td class="vnum">25000,5</td></tr>
+    </table>
+  </div></div>
+  <p><strong>Coluna A (incisos):</strong> o texto exatamente como vai entrar no Art. 2º da minuta. <strong>Coluna B (valor):</strong> o valor em número, usado para conferir se a conta fecha.</p>
+  <ul class="check">
+    <li>Todos os incisos esperados estão na lista?</li>
+    <li>Os valores estão corretos?</li>
+    <li>O texto e o valor por extenso estão corretos?</li>
+    <li>A numeração segue em sequência (II, III, IV…)?</li>
+  </ul>
+  <div class="box nota">
+    <div class="t">Precisa corrigir algo?</div>
+    <p>O melhor é corrigir o <strong>documento de origem</strong> do órgão, responder <strong>n</strong> e rodar de novo. Se preferir corrigir direto na planilha:</p>
+    <ul>
+      <li>se mudar um valor, mude <strong>nas duas colunas</strong>: no texto (com o extenso) e no número da coluna B;</li>
+      <li>se apagar uma linha, renumere à mão os incisos seguintes, porque a numeração faz parte do texto;</li>
+      <li>não apague a primeira linha (<em>incisos</em> / <em>valor</em>);</li>
+      <li><strong>salve e feche</strong> o Excel antes de voltar para a janela preta.</li>
+    </ul>
+    <p>As correções feitas à mão <strong>se perdem</strong> se você rodar a ferramenta de novo, porque a planilha é recriada do zero.</p>
+  </div>
+</div></div>
+
+<div class="passo"><div class="num">5</div><div class="corpo">
+  <h3>Responder à pergunta</h3>
+  <p>Volte para a janela preta, digite a resposta e aperte <kbd>Enter</kbd>:</p>
+  <div class="duas">
+    <div class="card verde"><h4>s: gerar a minuta</h4><p style="margin:0">A ferramenta segue para a Etapa 2. Também aceita <em>sim</em>.</p></div>
+    <div class="card laranja"><h4>n: parar aqui</h4><p style="margin:0">A planilha fica salva e nada mais é criado. Também aceita <em>não</em>.</p></div>
+  </div>
+  <div class="term"><div class="bar"><span>gerar_minuta.py</span><span class="ctl">—☐✕</span></div><pre>  Conferência concluída. Prosseguir com a geração da minuta? [s/n]: <span class="in">n</span>
+
+  Encerrado. A conferência foi gerada; a minuta não foi solicitada.</pre></div>
+</div></div>
+
+<div class="passo"><div class="num">6</div><div class="corpo">
+  <div class="junto"><h3>Etapa 2: a geração</h3>
+  <p>Respondendo <strong>s</strong>, a ferramenta mostra os arquivos que vai usar, faz as verificações e cria a minuta:</p>
+  <div class="term"><div class="bar"><span>gerar_minuta.py</span><span class="ctl">—☐✕</span></div><pre>  Conferência concluída. Prosseguir com a geração da minuta? [s/n]: <span class="in">s</span>
+
+------------------------------------------------------------
+  Etapa 2 — Geração da Minuta
+------------------------------------------------------------
+
+  Template : …\Decretos\Manual decreto\minutas padrão\minuta xxx.docx <span class="mk">1</span>
+  TXT      : …\Minutas Finalizadas\10 outubro\minuta 250\Minuta0250.TXT
+  XLSX     : …\Minutas Finalizadas\10 outubro\minuta 250\conferencia.xlsx
+  Saida    : …\Minutas Finalizadas\10 outubro\minuta 250\minuta 250.docx <span class="mk">2</span>
+OK -&gt; …\Minutas Finalizadas\10 outubro\minuta 250\minuta 250.docx <span class="mk">3</span></pre></div></div>
+  <div class="legenda">
+    <div class="l"><span class="mk">1</span><span>Os arquivos usados: o modelo, o TXT do SIAFI e a planilha. Confira se é o TXT certo.</span></div>
+    <div class="l"><span class="mk">2</span><span>Onde a minuta será salva: na própria pasta da minuta.</span></div>
+    <div class="l"><span class="mk">3</span><span><strong>OK</strong> quer dizer que <strong>deu certo</strong> e a minuta foi criada.</span></div>
+  </div>
+  <p>Se aparecer um quadro <strong>ATENÇÃO</strong> antes do OK, a ferramenta encontrou algo que precisa da sua decisão. Veja a <strong>seção 5</strong>.</p>
+  <div class="box atencao">
+    <div class="t">Atenção</div>
+    <p>Se já existir na pasta um arquivo com o mesmo nome (ex.: <code>minuta 250.docx</code>), ele é <strong>substituído sem aviso</strong>. Se quiser guardar a versão anterior, renomeie ou mova o arquivo antes.</p>
+  </div>
+</div></div>
+
+<div class="passo"><div class="num">7</div><div class="corpo">
+  <div class="junto"><h3>Revisar a minuta no Word</h3>
+  <p>Abra a <strong>minuta 250.docx</strong> na pasta da minuta. Os trechos destacados abaixo são os que a ferramenta preencheu no exemplo:</p>
+  <div class="papel">
+    <p>Abre crédito suplementar no valor de R$<span class="auto">175.000,50</span></p>
+    <p class="ind">Art. 1º – Fica aberto crédito suplementar no valor de R$<span class="auto">175.000,50 (cento e setenta e cinco mil reais e cinquenta centavos)</span> indicado no Anexo, […]</p>
+    <p class="ind">Art. 2º – Para atender ao disposto no art.1º serão utilizados recursos provenientes:</p>
+    <p class="ind">I – da anulação das dotações orçamentárias indicadas no Anexo, no valor de R$<span class="auto">100.000,00 (cem mil reais)</span>;</p>
+    <p class="ind"><span class="auto">II – do saldo financeiro da fonte 60 - Recursos Diretamente Arrecadados da Secretaria de Estado de Educação no valor de R$50.000,00 (cinquenta mil reais);</span></p>
+    <p class="ind"><span class="auto">III – do excesso de arrecadação da receita de Taxa de Incêndio do Corpo de Bombeiros Militar do Estado de Minas Gerais no valor de R$25.000,50 (vinte e cinco mil reais e cinquenta centavos).</span></p>
+    <p style="text-align:center;color:#888;margin:4px 0 0">[…] Anexo: registro no SIAFI, dotações e totais […]</p>
+  </div></div>
+  <div class="junto"><p>A ferramenta faz o trabalho pesado, mas <strong>a revisão continua sendo sua</strong>:</p>
+  <ul class="check">
+    <li><strong>Ementa e Art. 1º:</strong> o valor e o extenso batem com o total da suplementação?</li>
+    <li><strong>Art. 2º:</strong> o inciso I (anulação) e os demais incisos estão certos? O último termina com ponto e os outros com ponto e vírgula?</li>
+    <li><strong>Anexo:</strong> o número do registro no SIAFI, os órgãos, as dotações e os totais estão certos?</li>
+    <li><strong>Acentos no Anexo:</strong> o SIAFI exporta os nomes sem acento. A ferramenta corrige só palavras comuns (EDUCAÇÃO, SAÚDE, POLÍCIA, FUNDAÇÃO…) e as outras ficam sem acento, como em “ECONOMICO”. Corrija à mão no Word.</li>
+    <li><strong>Número do decreto, datas e fecho:</strong> a ferramenta não mexe nesses trechos, que ficam como estão no modelo.</li>
+    <li><strong>Casos especiais</strong> (PROPAG, Brumadinho, Mariana, emenda, transposição, lei específica…): a ferramenta usa sempre o modelo padrão <em>minuta xxx.docx</em>. Compare com o modelo específico da pasta <em>minutas padrão</em> e ajuste o texto se necessário.</li>
+  </ul></div>
+</div></div>
+
+<!-- =============================== 5 =============================== -->
+<h2 class="sec"><span class="n">5</span><span>Entendendo os avisos</span></h2>
+<p class="lead">Antes de criar a minuta, a ferramenta faz duas verificações. Se estiver tudo certo, elas passam sem mostrar nada. Se encontrarem algo, aparece um quadro <strong>ATENÇÃO</strong> perguntando se você quer continuar.</p>
+
+<h3>5.1 Fontes de recursos especiais</h3>
+<div class="term"><div class="bar"><span>gerar_minuta.py</span><span class="ctl">—☐✕</span></div><pre>============================================================
+  ATENÇÃO — VERIFICAÇÃO DA MINUTA
+============================================================
+
+<span class="alerta">  ⚠️  Minuta contém Recursos de Brumadinho</span> <span class="mk">1</span>
+    → 1401.06182052-4.115-0001-3390-0-95.1                          25.000,00 <span class="mk">2</span>
+
+============================================================
+  Deseja continuar mesmo assim? [s/n]: </pre></div>
+<div class="legenda">
+  <div class="l"><span class="mk">1</span><span>O tipo de recurso encontrado.</span></div>
+  <div class="l"><span class="mk">2</span><span>A dotação do TXT que causou o aviso. Se houver várias, todas aparecem.</span></div>
+</div>
+<p>Esse aviso aparece quando alguma dotação do TXT usa recursos que têm tratamento especial:</p>
+<table class="tb">
+  <thead><tr><th style="width:48%">Quando aparece</th><th>Mensagem</th></tr></thead>
+  <tr><td>Fonte <strong>89</strong>, ou IPU <strong>0</strong> (com qualquer fonte)</td><td>Minuta contém Recursos do <strong>PROPAG</strong></td></tr>
+  <tr><td>Fonte <strong>95</strong></td><td>Minuta contém Recursos de <strong>Brumadinho</strong></td></tr>
+  <tr><td>Fonte <strong>80</strong></td><td>Minuta contém Recursos de <strong>Mariana</strong></td></tr>
+</table>
+<h4>Como achar a fonte e o IPU no código da dotação</h4>
+<div class="card nobreak" style="padding:4px 10px">
+  <div class="dot">1401.06182052-4.115-0001-3390-0-<span class="f">95</span>.<span class="i">1</span></div>
+  <div class="dot-leg"><span class="lf">fonte = 95</span><span class="li">IPU = 1</span></div>
+</div>
+<p>São os dois números do final do código, separados por um ponto: primeiro a <strong>fonte</strong>, depois o <strong>IPU</strong>.</p>
+<div class="box dica">
+  <div class="t">O que fazer</div>
+  <ul>
+    <li><strong>O aviso era esperado</strong> (a minuta é mesmo de recursos de Brumadinho, por exemplo): responda <strong>s</strong>. A minuta é gerada normalmente. Depois, confira a redação com o modelo específico da pasta <em>minutas padrão</em>: <em>minuta (fonte 95).docx</em>, <em>minuta (fonte 80).docx</em> ou <em>minuta (propag).docx</em>.</li>
+    <li><strong>O aviso não era esperado:</strong> responda <strong>n</strong> e verifique as dotações no TXT ou no SIAFI.</li>
+  </ul>
+</div>
+
+<h3>5.2 Divergência de valores</h3>
+<p>A regra é simples: <strong>o total suplementado tem que ser igual à soma da anulação com os incisos</strong>, centavo por centavo.</p>
+<div class="conta">
+  <div class="t a"><small>Suplementação</small><span>Art. 1º · do TXT</span><b>R$ 175.000,50</b></div>
+  <div class="op">=</div>
+  <div class="t b"><small>Anulação</small><span>inciso I · do TXT</span><b>R$ 100.000,00</b></div>
+  <div class="op">+</div>
+  <div class="t b"><small>Incisos II, III…</small><span>da conferencia.xlsx</span><b>R$ 75.000,50</b></div>
+</div>
+<p>Não há margem de tolerância: <strong>até R$ 0,01 de diferença</strong> já gera o aviso. Exemplo de quando falta dinheiro no Art. 2º:</p>
+<div class="term"><div class="bar"><span>gerar_minuta.py</span><span class="ctl">—☐✕</span></div><pre>============================================================
+  ATENÇÃO — DIVERGÊNCIA DE VALORES
+============================================================
+
+  Valor Suplementado (Art. 1º) : R$ 175.000,50
+  Anulação (TXT)               : R$ 99.999,00
+  Incisos (conferencia.xlsx)   : R$ 75.000,50
+  Total Art. 2º                : R$ 174.999,50
+
+<span class="alerta">  ⚠️  Valor do Art. 2º é MENOR que o Valor Suplementado
+      (falta de R$ 1,00)</span>
+
+============================================================
+  Deseja continuar mesmo assim? [s/n]: </pre></div>
+
+<div class="duas">
+  <div class="card vermelho">
+    <h4>Art. 2º MAIOR (excesso)</h4>
+    <p style="margin-bottom:4px">Causas mais comuns:</p>
+    <ul>
+      <li>uma <strong>minuta gerada antes</strong> ficou na pasta e os incisos foram contados em dobro;</li>
+      <li>um documento de órgão <strong>repetido</strong>, ou em versão antiga, ficou na pasta;</li>
+      <li>valor errado em algum documento.</li>
+    </ul>
+  </div>
+  <div class="card laranja">
+    <h4>Art. 2º MENOR (falta)</h4>
+    <p style="margin-bottom:4px">Causas mais comuns:</p>
+    <ul>
+      <li>um inciso <strong>não foi encontrado</strong> (valor sem centavos, frase fora do padrão ou quebra de linha no meio; veja a seção 3);</li>
+      <li>falta na pasta o documento de algum órgão;</li>
+      <li>o TXT está desatualizado.</li>
+    </ul>
+  </div>
+</div>
+
+<h4>Exemplo: rodar de novo sem tirar a minuta antiga</h4>
+<p>Neste caso a Etapa 1 encontra <strong>4</strong> incisos em vez de 2, porque também leu a <em>minuta 250.docx</em> gerada antes. Os valores dobram:</p>
+<div class="term"><div class="bar"><span>gerar_minuta.py</span><span class="ctl">—☐✕</span></div><pre>Processo concluído. 4 incisos lidos, 2 após consolidação. Arquivo: …\conferencia.xlsx
+<span class="dim">[…]</span>
+  Incisos (conferencia.xlsx)   : R$ 150.001,00
+  Total Art. 2º                : R$ 250.001,00
+
+<span class="alerta">  ⚠️  Valor do Art. 2º é MAIOR que o Valor Suplementado
+      (excesso de R$ 75.000,50)</span></pre></div>
+<p>Solução: responda <strong>n</strong>, mova ou apague a <em>minuta 250.docx</em> antiga e rode de novo.</p>
+
+<div class="box importante">
+  <div class="t">O que fazer quando aparecer divergência</div>
+  <p><strong>Na dúvida, responda n</strong>, descubra a causa, corrija e rode de novo. Só responda <strong>s</strong> se souber exatamente por que a diferença existe e tiver certeza de que a minuta está correta assim.</p>
+</div>
+
+<!-- =============================== 6 =============================== -->
+<h2 class="sec"><span class="n">6</span><span>Problemas comuns e como resolver</span></h2>
+<p class="lead">Procure na coluna da esquerda a mensagem que apareceu na tela. Para ler as mensagens com calma, abra a ferramenta pelo <strong>Jeito B</strong> (Passo 1), porque assim a janela não fecha sozinha.</p>
+
+<table class="tb">
+  <thead><tr><th style="width:34%">O que aparece</th><th style="width:30%">O que significa</th><th>Como resolver</th></tr></thead>
+  <tr><td>A janela preta abre e <strong>fecha na mesma hora</strong></td><td>Algo deu errado logo no início. Na maioria das vezes, faltam os complementos.</td><td>Abra pelo Jeito B para ler a mensagem. Depois procure a mensagem nesta tabela.</td></tr>
+  <tr><td class="msg">'python' não é reconhecido como um comando interno ou externo…</td><td>O Python não está instalado ou o Windows não o encontra.</td><td>Siga o item 2.3 e marque “Add python.exe to PATH”. Como alternativa, troque <code>python</code> por <code>py</code> no comando.</td></tr>
+  <tr><td class="msg">ModuleNotFoundError: No module named 'docx'<br>(ou 'openpyxl', ou 'num2words')</td><td>Faltam os complementos.</td><td>Rode o comando de instalação do item 2.4.</td></tr>
+  <tr><td class="msg">[ERRO] Pasta da minuta não encontrada:</td><td>O nome digitado é diferente do nome real da pasta.</td><td>Confira espaços, acentos e a barra <kbd>\</kbd>. Melhor ainda: use o atalho “Copiar como caminho” (Passo 2). Confira também se o OneDrive está sincronizado.</td></tr>
+  <tr><td class="msg">[ERRO] Falha na conferência: Nenhum arquivo .docx encontrado em: …</td><td>A pasta não tem nenhum documento Word.</td><td>Coloque na pasta os documentos dos órgãos (.docx).</td></tr>
+  <tr><td class="msg">Nenhum inciso de 'do saldo'/'do excesso' com 'no valor de' encontrado.</td><td>Não é um erro. Nenhum documento tem inciso no padrão.</td><td>Se a minuta deveria ter incisos, confira como eles estão escritos (seção 3).</td></tr>
+  <tr><td class="msg">[ERRO] Falha na conferência: [Errno 13] Permission denied: '…conferencia.xlsx'</td><td>A planilha está aberta no Excel e não pode ser substituída.</td><td>Feche o Excel e rode de novo.</td></tr>
+  <tr><td class="msg">[ERRO] Falha ao gerar minuta: [Errno 13] Permission denied: '…minuta 250.docx'</td><td>Uma minuta com o mesmo nome está aberta no Word.</td><td>Feche o Word. Antes de rodar de novo, <strong>mova ou apague essa minuta</strong> da pasta, senão os incisos são contados em dobro.</td></tr>
+  <tr><td class="msg">[ERRO] Nenhum arquivo 'Minuta*.TXT' encontrado em: …</td><td>Falta o arquivo do SIAFI, ou o nome dele não começa com “Minuta”.</td><td>Exporte o TXT do SIAFI e salve na pasta da minuta com o nome no padrão <em>Minuta0250.TXT</em>.</td></tr>
+  <tr><td class="msg">[AVISO] Mais de um TXT encontrado na pasta. Usarei o primeiro:</td><td>Há mais de um arquivo “Minuta….TXT” na pasta.</td><td>Deixe só o TXT certo e rode de novo. O aviso mostra qual foi usado.</td></tr>
+  <tr><td class="msg">ERRO: 'NoneType' object has no attribute 'replace'</td><td>O TXT não tem a linha “TOTAL DA SUPLEMENTACAO” ou “TOTAL DA ANULACAO”, porque está incompleto ou a minuta não tem anulação.</td><td>Exporte o TXT de novo do SIAFI. Se a minuta realmente não tiver anulação, a ferramenta não atende esse caso: monte a minuta à mão.</td></tr>
+  <tr><td class="msg">[ERRO] Template nao encontrado:</td><td>O modelo <em>minuta xxx.docx</em> não está onde a ferramenta espera.</td><td>Confira se o OneDrive está sincronizado e se o modelo não foi renomeado ou movido. Na virada do ano, veja o Apêndice.</td></tr>
+  <tr><td class="msg">[ERRO] Falha ao gerar minuta: Nao encontrei o paragrafo de titulo da tabela.</td><td>O modelo foi alterado e perdeu um trecho que a ferramenta usa.</td><td>Restaure o modelo original ou chame o suporte técnico.</td></tr>
+  <tr><td>A minuta saiu com <strong>valores em dobro</strong>, ou apareceram “incisos lidos” demais</td><td>Uma minuta antiga ou um documento repetido ficou na pasta.</td><td>Deixe na pasta só os documentos dos órgãos e o TXT (seção 3) e rode de novo.</td></tr>
+  <tr><td>Nomes de órgãos <strong>sem acento</strong> no Anexo</td><td>O SIAFI exporta sem acento e a ferramenta só conhece palavras comuns.</td><td>Corrija no Word. Peça ao suporte para incluir a palavra na lista da ferramenta.</td></tr>
+</table>
+
+<!-- =============================== 7 =============================== -->
+<h2 class="sec"><span class="n">7</span><span>Perguntas frequentes</span></h2>
+<p class="lead">Respostas curtas para as dúvidas mais comuns.</p>
+<div class="faq">
+  <div><h4>Preciso sempre passar pelas duas etapas?</h4>
+  <p>A ferramenta sempre começa pela Etapa 1 (conferência). Depois dela, você escolhe se segue para a geração (<strong>s</strong>) ou se para (<strong>n</strong>).</p></div>
+
+  <div><h4>Posso rodar a ferramenta de novo na mesma pasta?</h4>
+  <p>Pode, mas antes <strong>mova ou apague a minuta gerada</strong> (<em>minuta NNN.docx</em>), senão os incisos são contados em dobro. Lembre também que a <em>conferencia.xlsx</em> é recriada do zero.</p></div>
+
+  <div><h4>A ferramenta altera os documentos dos órgãos ou o TXT?</h4>
+  <p>Não. Ela só lê esses arquivos e só cria (ou substitui) a <em>conferencia.xlsx</em> e a <em>minuta NNN.docx</em>.</p></div>
+
+  <div><h4>Posso corrigir a conferencia.xlsx à mão?</h4>
+  <p>Pode, durante a pausa entre as etapas (Passo 4). Mude as duas colunas, salve e feche o Excel antes de responder <strong>s</strong>.</p></div>
+
+  <div><h4>O que quer dizer “consolidação”?</h4>
+  <p>Quando dois documentos trazem exatamente a mesma descrição de inciso, a ferramenta junta os dois num inciso só e soma os valores.</p></div>
+
+  <div><h4>Por que os incisos começam no II?</h4>
+  <p>Porque o inciso I do Art. 2º é sempre o da anulação, que vem do TXT. Os incisos de saldo e de excesso vêm em seguida.</p></div>
+
+  <div><h4>E se a minuta não tiver nenhum inciso de saldo ou excesso?</h4>
+  <p>Funciona normalmente. A planilha sai só com o cabeçalho e o Art. 2º é escrito num parágrafo único, só com a anulação.</p></div>
+
+  <div><h4>Onde a minuta é salva? E se já existir uma com o mesmo nome?</h4>
+  <p>Na própria pasta da minuta, com o nome <em>minuta NNN.docx</em>, em que NNN vem do nome do TXT. Se já existir um arquivo com esse nome, ele é substituído sem aviso.</p></div>
+
+  <div><h4>Funciona para minutas de emenda, transposição ou lei específica?</h4>
+  <p>A ferramenta usa sempre o modelo padrão <em>minuta xxx.docx</em>. Para esses casos, compare o resultado com o modelo específico da pasta <em>minutas padrão</em> e ajuste no Word.</p></div>
+
+  <div><h4>Preciso de internet?</h4>
+  <p>Só para instalar o Python e os complementos (seção 2) e para o OneDrive sincronizar os arquivos. A ferramenta em si funciona sem internet.</p></div>
+
+  <div><h4>Posso alterar o modelo minuta xxx.docx?</h4>
+  <p>Evite. A ferramenta depende da posição dos parágrafos e das marcações “xxx” do modelo. Mudanças podem fazer a ferramenta parar de funcionar ou preencher o lugar errado. Se for preciso mudar, combine antes com o suporte técnico.</p></div>
+
+  <div><h4>Quem procuro se nada disso resolver?</h4>
+  <p>O responsável pela ferramenta na equipe. Mande um print da janela preta, de preferência aberta pelo Jeito B, e diga qual minuta você estava gerando.</p></div>
+</div>
+
+<!-- =============================== 8 =============================== -->
+<h2 class="sec"><span class="n">8</span><span>Cola rápida</span></h2>
+<p class="lead">O uso do dia a dia em uma página. Imprima e deixe por perto.</p>
+
+<div class="primeira">
+  <strong>Só na primeira vez:</strong> instale o Python marcando <em>“Add python.exe to PATH”</em> e, no Prompt de Comando, rode:
+  <div class="cmd" style="margin:6px 0 0"><div class="rot">Digite</div><pre>python -m pip install python-docx openpyxl num2words</pre></div>
+</div>
+
+<div class="cola">
+  <div class="et"><div class="num">1</div><div><p><strong>Monte a pasta da minuta</strong></p><p class="s">Minutas Finalizadas\&lt;mês&gt;\minuta NNN, com os <strong>.docx dos órgãos</strong> e o <strong>MinutaNNNN.TXT</strong> do SIAFI. Nada de minuta antiga, cópias de documentos ou TXT extra.</p></div></div>
+  <div class="et"><div class="num">2</div><div><p><strong>Abra a ferramenta</strong></p><p class="s">Dois cliques em <em>gerar_minuta.py</em>, ou <code>python gerar_minuta.py</code> no Prompt.</p></div></div>
+  <div class="et"><div class="num">3</div><div><p><strong>Informe a pasta e aperte Enter</strong></p><p class="s">Ex.: <code>10 outubro\minuta 250</code>, ou cole o caminho copiado com “Copiar como caminho”.</p></div></div>
+  <div class="et"><div class="num">4</div><div><p><strong>Confira a Etapa 1</strong></p><p class="s">A quantidade de “incisos lidos” faz sentido? Abra a <em>conferencia.xlsx</em>, confira textos e valores e <strong>feche o Excel</strong>.</p></div></div>
+  <div class="et"><div class="num">5</div><div><p><strong>Digite s e aperte Enter</strong></p><p class="s">Se digitar <strong>n</strong>, a ferramenta para e só a planilha fica salva.</p></div></div>
+  <div class="et"><div class="num">6</div><div><p><strong>Apareceu ATENÇÃO?</strong></p><p class="s">Fonte especial: confira se era esperado. Divergência de valores: na dúvida, responda <strong>n</strong> e descubra a causa (seção 5).</p></div></div>
+  <div class="et"><div class="num">7</div><div><p><strong>Viu “OK -&gt;”? Revise a minuta no Word</strong></p><p class="s">Valores e extensos, incisos e pontuação, Anexo, acentos dos órgãos, número, datas e fecho do decreto, e o modelo específico em casos especiais.</p></div></div>
+</div>
+
+<div class="box importante" style="margin-top:14px">
+  <div class="t">Os três erros mais comuns</div>
+  <ol>
+    <li><strong>Rodar de novo com a minuta antiga na pasta</strong>, o que faz os incisos serem contados em dobro.</li>
+    <li><strong>Valor sem centavos no documento do órgão</strong> (<em>R$ 50.000</em> em vez de <em>R$ 50.000,00</em>), o que faz o inciso não ser encontrado.</li>
+    <li><strong>Arquivo aberto no Excel ou no Word</strong> na hora de rodar, o que dá o erro “Permission denied”.</li>
+  </ol>
+</div>
+
+<!-- =============================== A =============================== -->
+<h2 class="sec"><span class="n">A</span><span>Apêndice: para quem dá suporte técnico</span></h2>
+<p class="lead">Informações para quem mantém a ferramenta. Quem só usa no dia a dia não precisa desta parte.</p>
+
+<h3>A.1 Onde a ferramenta procura os arquivos</h3>
+<p>O caminho-raiz é resolvido nesta ordem:</p>
+<ol>
+  <li>a variável de ambiente <code>MINUTA_BASE</code>, se estiver definida;</li>
+  <li>senão, o padrão <code>%USERPROFILE%\OneDrive - CAMG\General\@dcmefo\2026\Decretos</code>, definido na constante <code>_DEFAULT_BASE</code>, no início do script.</li>
+</ol>
+<p>A partir dele, a ferramenta usa <code>Minutas Finalizadas</code> e o modelo <code>Manual decreto\minutas padrão\minuta xxx.docx</code>.</p>
+<div class="box atencao">
+  <div class="t">Virada do ano</div>
+  <p>O ano <strong>2026</strong> está fixo em <code>_DEFAULT_BASE</code>. Em 2027 é preciso atualizar o script ou definir a variável para cada usuário (vale para as próximas janelas do Prompt):</p>
+  <div class="cmd" style="margin:6px 0 0"><div class="rot">Digite</div><pre>setx MINUTA_BASE "%USERPROFILE%\OneDrive - CAMG\General\@dcmefo\2027\Decretos"</pre></div>
+</div>
+
+<h3>A.2 Dependências do modelo minuta xxx.docx</h3>
+<p>O preenchimento depende da estrutura do modelo. Não altere:</p>
+<ul>
+  <li>a ordem dos primeiros parágrafos: a ementa é o 2º parágrafo; o Art. 1º, o caput do Art. 2º, o inciso I e o marcador “Xxx” dos demais incisos são do 5º ao 8º;</li>
+  <li>os marcadores <code>xxx</code> e <code>xxx por extenso</code>;</li>
+  <li>o parágrafo com “Sob o … xxx” (número do registro no SIAFI);</li>
+  <li>o parágrafo que começa com “SE REFERE O ART.1” e contém “xxx” (título do Anexo).</li>
+</ul>
+
+<h3>A.3 Acentuação dos nomes de órgãos</h3>
+<p>As palavras re-acentuadas nos títulos do Anexo ficam no dicionário <code>WORD_FIXES</code> do script (ex.: <code>"EDUCACAO": "EDUCAÇÃO"</code>). Para acrescentar uma palavra, inclua um novo par <em>sem acento → com acento</em>, em maiúsculas.</p>
+
+<h3>A.4 Rodar informando a pasta direto</h3>
+<p>A pasta da minuta pode ser passada como argumento, sem a pergunta inicial:</p>
+<div class="cmd"><div class="rot">Digite</div><pre>python gerar_minuta.py "10 outubro\minuta 250"</pre></div>
+
+<h3>A.5 Limitações conhecidas</h3>
+<ul>
+  <li><strong>Releitura da minuta gerada:</strong> a Etapa 1 lê todo <code>*.docx</code> da pasta (exceto <code>~$*</code>), inclusive a <code>minuta NNN.docx</code> de uma execução anterior, o que duplica os incisos. A verificação de balanço detecta o problema. Uma melhoria possível é ignorar <code>minuta *.docx</code> na conferência.</li>
+  <li><strong>TXT sem anulação:</strong> sem a linha “TOTAL DA ANULACAO” (ou “TOTAL DA SUPLEMENTACAO”), a Etapa 2 para com <code>'NoneType' object has no attribute 'replace'</code>.</li>
+  <li><strong>Formato do valor:</strong> só é reconhecido o padrão <code>R$ 1.234,56</code>, com vírgula e dois decimais, no mesmo parágrafo de “do saldo” ou “do excesso” e de “no valor de”.</li>
+  <li><strong>Balanço sem tolerância:</strong> a comparação é feita em centavos inteiros e qualquer diferença gera o aviso.</li>
+</ul>
+
+<h3>A.6 Requisitos</h3>
+<p>Python 3.9 ou mais novo e os complementos <code>python-docx</code>, <code>openpyxl</code> e <code>num2words</code>, listados em <code>requirements.txt</code>. Para instalar pelo repositório: <code>python -m pip install -r requirements.txt</code>.</p>
+
+</body>
+</html>
